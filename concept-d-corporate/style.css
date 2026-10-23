@@ -1,0 +1,413 @@
+/* ── Concept D — Corporate site / brand-native ─────────────────────
+   Genenta's own corporate website (genenta.com), extended into a 300x600 ad.
+   Every source token below was read from that site's theme CSS and DOM (computed styles of the
+   homepage grid): cream page #FFFCF4; tiles #6EB541 green, #FFAD1F orange, #0A2D41 navy,
+   #F85A3E coral, #118AB2 blue; tile radius 20px (--radius) scaled to the banner; headline
+   Source Serif 4 weight 300; tile titles Lexend Deca; body Raleway.
+   Each slide is one homepage tile, built from shared parts:
+     .m-intro  serif statement over a photo tile ('Built to Build / Mission')
+     .m-orange orange tile with the site's own line icons ('Defense / Aerospace / National Security')
+     .m-photo  press-release photo tile ('Sòphia High Tech')
+     .m-navy   navy tile ('Investor')
+   Parts: .tile, .t-label, .t-title, .t-text, .pills, .d-stats > .d-stat (.d-value + .d-label).
+   Contrast: white copy only on navy or under the photo tiles' navy shade; navy copy on orange. ── */
+:root {
+  /* Source tokens — the corporate site's theme */
+  --primary:    #0A2D41;   /* navy tile; headings, nav, footer tile */
+  --secondary:  #6EB541;   /* green tile; accent bars, active-nav rule */
+  --orange:     #FFAD1F;   /* orange tile */
+  --page-bg:    #FFFCF4;   /* page background */
+  --header-bg:  #FFFCF4;   /* header bar */
+  --white:      #FFFFFF;
+  --text:       #4f4f4f;   /* body copy on the cream page (7.9:1) */
+  --rule:       #e6e1d3;   /* hairlines */
+  --shade:      #000000;
+  --btn-radius: 12px;      /* the site's --radius-sm */
+  --tile-r:     14px;      /* the site's --radius (20px) at banner scale */
+
+  /* Derived */
+  --on-dark:    var(--white);
+  --on-dark-2:  color-mix(in srgb, var(--white) 90%, transparent);
+  --ink-2:      #333333;   /* the site's headline colour on cream */
+  --hdr-shadow: 0 1px 0 var(--rule);
+
+  /* Type — the site's own Google Fonts (the link in index.html <head>) */
+  --serif:     'Source Serif 4', Georgia, serif;
+  --font-head: 'Lexend Deca', system-ui, sans-serif;
+  --font-body: 'Raleway', system-ui, sans-serif;
+  --ease:      cubic-bezier(0.16,1,0.3,1);
+
+  /* Geometry (fixed 300x600 stage) */
+  --gutter:    12px;
+  --hdr-h:     48px;
+  --bf-pad:    8px;           /* bottom block: space above the controls row */
+  --ctrl-h:    22px;          /* dots + arrows row */
+  --bf-gap:    7px;           /* controls → CTA */
+  --cta-h:     38px;
+  --bf-gap-2:  8px;           /* CTA → footer tile */
+  --foot-h:    28px;          /* footer tile: the disclosure, two lines */
+  --foot-mb:   8px;
+  --bf-h:      calc(var(--bf-pad) + var(--ctrl-h) + var(--bf-gap) + var(--cta-h) + var(--bf-gap-2) + var(--foot-h) + var(--foot-mb));
+  --bar-w:     28px;          /* accent underline bar */
+  --bar-h:     3px;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { width:300px; height:600px; overflow:hidden; background:var(--page-bg); }
+body { font-family:var(--font-body); color:var(--text); -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+a { text-decoration:none; color:inherit; }
+button { border:0; background:none; font:inherit; color:inherit; cursor:pointer; -webkit-tap-highlight-color:transparent; }
+ul { list-style:none; }
+.nw { white-space:nowrap; }
+.slide p { text-wrap:pretty; }
+
+/* ── Canvas ───────────────────────────────────────────────────────── */
+#banner {
+  position:relative;
+  width:300px;
+  height:600px;
+  overflow:hidden;
+  cursor:pointer;
+  background:var(--page-bg);
+}
+
+/* ── Slide stack: each slide fills only the space between the header
+   and the bottom block, so slide copy can never run under the chrome. ── */
+#slides { position:absolute; inset:0; z-index:1; }
+.slide {
+  position:absolute;
+  left:0; right:0;
+  top:var(--hdr-h);
+  bottom:var(--bf-h);
+  padding:8px var(--gutter) 6px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  overflow:hidden;
+  opacity:0;
+  z-index:1;
+  pointer-events:none;
+  transition:opacity 0.9s ease;
+}
+.slide.active { opacity:1; z-index:2; pointer-events:auto; }
+
+/* Content rises in on each slide change */
+.slide > * { transform:translateY(10px); transition:transform 0.9s var(--ease); }
+.slide.active > * { transform:none; }
+
+/* ── Tiles (the homepage's .grid-item) ────────────────────────────── */
+.tile {
+  position:relative;
+  flex:1;
+  min-height:0;
+  border-radius:var(--tile-r);
+  overflow:hidden;
+  color:var(--on-dark);
+}
+.t-label {
+  font-family:var(--font-body);
+  font-weight:600;
+  font-size:9px;
+  line-height:1.2;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+}
+.t-title {
+  margin-top:6px;
+  font-family:var(--font-head);
+  font-weight:400;
+  font-size:24px;
+  line-height:1.1;
+  letter-spacing:-0.01em;
+}
+.t-title.sm { font-weight:700; font-size:17px; line-height:1.18; letter-spacing:-0.005em; }
+.t-title.dark { color:var(--primary); font-size:20px; line-height:1.16; }
+.t-text {
+  margin-top:8px;
+  font-weight:500;
+  font-size:10.5px;
+  line-height:1.5;
+  color:var(--on-dark-2);
+}
+
+/* photo tiles: the site's photo + dark gradient, white Lexend Deca title */
+.t-img {
+  position:absolute;
+  inset:0;
+  width:100%; height:100%;
+  object-fit:cover;
+  user-select:none;
+  -webkit-user-drag:none;
+  animation:d-zoom 9s ease-out infinite alternate;
+}
+@keyframes d-zoom { from { transform:scale(1); } to { transform:scale(1.06); } }
+.t-shade { position:absolute; inset:0; }
+.t-body { position:absolute; left:0; right:0; bottom:0; padding:0 16px 16px; }
+
+/* ── Slide 1: serif statement + 'Built to Build' mission tile ─────── */
+.intro-h {
+  flex:none;
+  padding:2px 4px 0;
+  font-family:var(--serif);
+  font-weight:300;
+  font-size:23px;
+  line-height:1.12;
+  letter-spacing:-0.01em;
+  color:var(--ink-2);
+  text-wrap:balance;
+}
+.m-intro .t-photo { background:var(--primary); }
+.m-intro .t-img { object-position:50% 38%; height:62%; }   /* the board sits in the upper part; the shade carries the text */
+.m-intro .t-shade {
+  background:linear-gradient(180deg, color-mix(in srgb, var(--primary) 0%, transparent) 0%, color-mix(in srgb, var(--primary) 0%, transparent) 30%, color-mix(in srgb, var(--primary) 70%, transparent) 50%, var(--primary) 63%);
+}
+.pills { display:flex; flex-wrap:wrap; gap:5px 4px; margin-top:11px; }
+.pills .br { flex-basis:100%; height:0; padding:0; border:0; }
+.pills li {
+  padding:4px 8px 4px;
+  border:1px solid color-mix(in srgb, var(--white) 60%, transparent);
+  border-radius:999px;
+  font-family:var(--font-head);
+  font-weight:400;
+  font-size:8px;
+  line-height:1;
+  color:var(--on-dark);
+}
+
+/* ── Slide 2: orange 'Defense / Aerospace / National Security' tile ─ */
+.t-orange { background:var(--orange); color:var(--primary); padding:16px 16px 6px; display:flex; flex-direction:column; }
+.icon-trio { width:148px; height:148px; margin:8px auto 6px; flex:none; color:var(--primary); }
+.icon-trio svg, .t-icon svg { display:block; width:100%; height:100%; }
+.icon-trio svg *, .t-icon svg * { stroke-width:28px; fill:none; }   /* the site draws these in 24px strokes at tile scale; a touch heavier at banner size */
+.t-orange .d-stats { margin-top:auto; }
+.t-orange .d-stat {
+  display:grid;
+  grid-template-columns:84px 1fr;
+  align-items:center;
+  gap:10px;
+  padding:10px 0 11px;
+  border-top:1px solid color-mix(in srgb, var(--primary) 28%, transparent);
+}
+.t-orange .d-value { font-family:var(--font-head); font-weight:500; font-size:27px; line-height:1; letter-spacing:-0.02em; color:var(--primary); white-space:nowrap; }
+.t-orange .d-label { font-weight:600; font-size:10px; line-height:1.4; color:var(--primary); }
+.t-orange .d-label b { display:block; margin-bottom:2px; font-family:var(--font-head); font-weight:600; font-size:11px; line-height:1.25; }
+
+/* ── Slide 3: press-release photo tile ('Sòphia High Tech') ───────── */
+.m-photo .t-photo { background:var(--primary); }
+.m-photo .t-img { object-position:62% 30%; }
+.m-photo .t-shade {
+  background:linear-gradient(180deg, color-mix(in srgb, var(--shade) 28%, transparent) 0%, color-mix(in srgb, var(--primary) 0%, transparent) 26%, color-mix(in srgb, var(--primary) 78%, transparent) 54%, var(--primary) 70%);
+}
+.t-top {
+  position:absolute;
+  top:14px; left:16px; right:16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.badge {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-family:var(--font-body);
+  font-weight:600;
+  font-size:8.5px;
+  line-height:1;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--on-dark);
+  text-shadow:0 1px 3px color-mix(in srgb, var(--shade) 55%, transparent);
+}
+.badge i { width:7px; height:9px; border:1.2px solid currentColor; border-radius:2px; }
+.read {
+  font-family:var(--font-body);
+  font-weight:600;
+  font-size:8.5px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--on-dark);
+  text-shadow:0 1px 3px color-mix(in srgb, var(--shade) 55%, transparent);
+}
+.img-cap {
+  position:absolute;
+  right:10px; top:34px;
+  padding:2px 6px;
+  border-radius:3px;
+  background:color-mix(in srgb, var(--shade) 50%, transparent);
+  font-size:7px;
+  line-height:1.2;
+  letter-spacing:0.03em;
+  color:var(--on-dark);
+}
+
+/* ── Slide 4: navy 'Investor' tile ────────────────────────────────── */
+.t-navy { background:var(--primary); padding:18px 16px 14px; display:flex; flex-direction:column; }
+.t-navy .t-label { color:var(--on-dark-2); }
+.t-icon { flex:1; min-height:0; display:flex; align-items:center; justify-content:center; color:var(--white); opacity:0.92; }
+.t-icon svg { height:100%; max-height:104px; width:auto; aspect-ratio:1 / 1; }   /* the site's navy tile centres its icon in the upper area; it shrinks if the labels need room */
+.t-navy .d-stats { display:flex; flex-direction:column; gap:18px; }
+.t-navy .d-value { font-family:var(--font-head); font-weight:500; font-size:34px; line-height:1; letter-spacing:-0.025em; color:var(--white); white-space:nowrap; }
+.t-navy .d-label { font-weight:500; font-size:10.5px; line-height:1.45; color:var(--on-dark-2); }
+.t-navy .d-label::before {                 /* the site's accent bar above each label */
+  content:'';
+  display:block;
+  width:var(--bar-w);
+  height:var(--bar-h);
+  margin:8px 0 7px;
+  background:var(--secondary);
+  transform:scaleX(0);
+  transform-origin:left center;
+  transition:transform 0.7s var(--ease) 0.35s;
+}
+.slide.active .t-navy .d-label::before { transform:none; }
+.t-note { margin-top:16px; padding-top:10px; border-top:1px solid color-mix(in srgb, var(--white) 22%, transparent); font-weight:500; font-size:9.5px; line-height:1.4; color:var(--on-dark-2); }
+
+/* ── Persistent chrome (never rotates) ─────────────────────────────── */
+#top-bar {                         /* the site's header: cream, logo left, uppercase nav right */
+  position:absolute;
+  top:0; left:0; right:0;
+  height:var(--hdr-h);
+  z-index:6;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 calc(var(--gutter) + 4px) 0 calc(var(--gutter) + 4px);
+  background:var(--header-bg);
+  box-shadow:var(--hdr-shadow);
+}
+#logo { display:block; width:100px; height:31px; }
+#ticker {                          /* set as the active main-menu item */
+  position:relative;
+  padding-bottom:5px;
+  font-family:var(--font-body);
+  font-weight:600;
+  font-size:9.5px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--primary);
+}
+#ticker::after {
+  content:'';
+  position:absolute;
+  left:0; right:0; bottom:0;
+  height:2px;
+  background:var(--secondary);
+}
+
+#bottom-fixed {
+  position:absolute;
+  left:0; right:0; bottom:0;
+  height:var(--bf-h);
+  z-index:5;
+  padding-top:var(--bf-pad);
+  background:var(--page-bg);
+}
+
+/* Slider dots: rings, filled when active */
+#dots {
+  display:flex;
+  align-items:center;
+  gap:2px;
+  height:var(--ctrl-h);
+  margin:0 0 var(--bf-gap) calc(var(--gutter) - 4px);
+}
+.dot { position:relative; width:18px; height:18px; }
+.dot::before {
+  content:'';
+  position:absolute;
+  inset:4px;
+  border:1px solid var(--primary);
+  border-radius:50%;
+  background-color:transparent;
+  transition:background-color .3s ease;
+}
+.dot.active::before { background-color:var(--primary); }
+
+.nav-arrow {                       /* round control */
+  position:absolute;
+  z-index:6;
+  bottom:calc(var(--foot-mb) + var(--foot-h) + var(--bf-gap-2) + var(--cta-h) + var(--bf-gap));
+  width:var(--ctrl-h);
+  height:var(--ctrl-h);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:50%;
+  background:var(--primary);
+  color:var(--on-dark);
+  transition:background-color .2s ease, transform .15s ease;
+}
+.nav-arrow svg { width:11px; height:11px; }
+.nav-arrow:hover { background:#17475f; }
+.nav-arrow:active { transform:scale(0.9); }
+#arrow-next { right:var(--gutter); }
+#arrow-prev { right:calc(var(--gutter) + var(--ctrl-h) + 6px); }
+
+/* CTA — navy tile-coloured button with the site's arrow */
+#cta {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  height:var(--cta-h);
+  margin:0 var(--gutter) var(--bf-gap-2);
+  border-radius:var(--btn-radius);
+  background:var(--primary);
+  font-family:var(--font-head);
+  font-weight:500;
+  font-size:12px;
+  line-height:1;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--on-dark);
+  transition:background-color .2s ease, color .2s ease;
+}
+#cta-arrow {
+  width:17px; height:17px;
+  fill:currentColor;
+  animation:d-nudge 1.4s ease-in-out 2.4s 4;
+}
+/* hover: the site's green tile with navy ink (8.2:1); the whole banner hover signals the click */
+#banner:hover #cta, #cta:hover, #cta:focus-visible {
+  background:var(--secondary);
+  color:var(--primary);
+}
+@keyframes d-nudge { 0%, 100% { transform:translateX(0); } 50% { transform:translateX(3px); } }
+
+/* Required disclosure — set in the site's navy footer tile. Two lines fit; it names
+   what the slides actually forward-look about rather than a generic line. */
+#fls {
+  height:var(--foot-h);
+  margin:0 var(--gutter) var(--foot-mb);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 10px;
+  border-radius:9px;
+  background:var(--primary);
+  font-size:7.5px;
+  line-height:9.5px;
+  text-align:center;
+  text-wrap:balance;
+  overflow:hidden;
+  color:var(--on-dark-2);
+}
+
+/* ── Entrance sequence (initial load only) ─────────────────────────── */
+.reveal {
+  opacity:0;
+  transform:translateY(8px);
+  transition:opacity .7s var(--ease), transform .7s var(--ease);
+}
+#top-bar.reveal { transform:translateY(-8px); }
+#banner.is-live .reveal { opacity:1; transform:none; }
+#top-bar[data-delay="0"] { transition-delay:.05s; }
+#bottom-fixed[data-delay="4"] { transition-delay:.45s; }
+
+#click-tag-wrapper { position:absolute; width:0; height:0; overflow:hidden; }
+
+@media (prefers-reduced-motion: reduce) {
+  .t-img, #cta-arrow { animation:none; }
+  .reveal { transition-duration:.01s; transition-delay:0s !important; }
+  .slide, .slide > *, .t-navy .d-label::before { transition-duration:.2s; transition-delay:0s; }
+}
